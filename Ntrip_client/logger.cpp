@@ -6,7 +6,7 @@ void CmdLogger::log(std::string_view data) {
 	std::cout << data << "\n";
 }
 
-FileLogger::FileLogger(std::string_view filepath) : m_LogStream(filepath.data(), std::ios_base::binary | std::ios_base::app) { }
+FileLogger::FileLogger(std::string_view filepath) : m_LogStream(filepath.data(), std::ios_base::binary) { }
 
 FileLogger::~FileLogger() {
 	m_LogStream.close();

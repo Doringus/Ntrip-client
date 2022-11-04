@@ -85,6 +85,8 @@ void WinTcpSocket::beginReceive() const noexcept {
 			//	printf("%02X ", static_cast<uint8_t>(buf[i]));
 			//}
 			//printf("\n");
+		} else if(bytesReceived == 0) {
+			break;
 		} else {
 			m_ConnectionAbortedCallback();
 			break;
