@@ -5,28 +5,55 @@
 #include <stdexcept>
 #include <iostream>
 
-WinTcpSocket::WinTcpSocket(std::function<void(const char* data, int size)> readCallback, std::function<void()> connectionAbortedCallback)
+WinTcpSocket::WinTcpSocket(std::function<void(std::string_view data)> readCallback, std::function<void()> connectionAbortedCallback)
 	: TcpSocket(std::move(readCallback), std::move(connectionAbortedCallback))
-{
-	m_Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if(m_Socket == INVALID_SOCKET) {
-		throw std::runtime_error("Socket error: " + std::to_string(WSAGetLastError()));
-	}
-}
+{ }
 
 WinTcpSocket::~WinTcpSocket() {
-	closesocket(m_Socket);
+	if(m_IsSocketCreated) {
+		shutdown(m_Socket, 2);
+		closesocket(m_Socket);
+	}
 }
 
-bool WinTcpSocket::connect(const std::string& ip, unsigned short port) const noexcept {
-	sockaddr_in clientService;
-	clientService.sin_family = AF_INET;
-	inet_pton(AF_INET, ip.c_str(), &clientService.sin_addr.s_addr);
-	clientService.sin_port = htons(port);
-	int status = ::connect(m_Socket, reinterpret_cast<SOCKADDR*>(&clientService), sizeof(clientService));
-	if(status != 0) {
+bool WinTcpSocket::connect(const std::string& ip, unsigned short port, int timeoutSec) noexcept {
+	m_Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (m_Socket == INVALID_SOCKET) {
 		return false;
 	}
+	m_IsSocketCreated = true;
+
+	TIMEVAL timeout {timeoutSec, 0};
+
+	sockaddr_in clientService {AF_INET, htons(port)};
+	inet_pton(AF_INET, ip.c_str(), &clientService.sin_addr.s_addr);
+
+	/// Switch socket to non-blocking mode
+	unsigned long socketMode = 1;
+	int status = ioctlsocket(m_Socket, FIONBIO, &socketMode);
+	if(status != NO_ERROR) {
+		return false;
+	}
+
+	if(::connect(m_Socket, reinterpret_cast<SOCKADDR*>(&clientService), sizeof(clientService)) == false) {
+		return false;
+	}
+
+	/// Restore socket mode
+	socketMode = 0;
+	status = ioctlsocket(m_Socket, FIONBIO, &socketMode);
+	if(status != NO_ERROR) {
+		return false;
+	}
+
+	fd_set write;
+	FD_ZERO(&write);
+	FD_SET(m_Socket, &write);
+	status = select(0, nullptr, &write, nullptr, &timeout);
+	if(!FD_ISSET(m_Socket, &write) || status == SOCKET_ERROR) {
+		return false;
+	}
+
 	return true;
 }
 
@@ -40,29 +67,29 @@ bool WinTcpSocket::send(const char* data, int length) const noexcept {
 		}
 
 	} while (totalBytesSend < length);
-	beginReceive();
 	return true;
 }
 
 void WinTcpSocket::beginReceive() const noexcept {
-	char buf[2048];
-	int r;
+	constexpr int bufSize = 2048;
+	char buf[bufSize] = {0};
+	int bytesReceived;
 	do
 	{
-		r = recv(m_Socket, buf, 2048, 0);
-		if (r > 0) {
-			m_ReadCallback(buf, r);
+		bytesReceived = recv(m_Socket, buf, bufSize, 0);
+		if (bytesReceived > 0) {
+			std::string_view data(buf, bytesReceived);
+			m_ReadCallback(data);
+			memset(buf, 0, bufSize);
 			//for (int i = 0; i < r; ++i) {
 			//	printf("%02X ", static_cast<uint8_t>(buf[i]));
 			//}
 			//printf("\n");
-		} else if (r == 0) {
-			std::cout << "connection ended" << std::endl;
 		} else {
-			std::cout << "error" << WSAGetLastError() << std::endl;
 			m_ConnectionAbortedCallback();
+			break;
 		}
 			
-	} while (r > 0);
+	} while (bytesReceived > 0);
 
 }
