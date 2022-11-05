@@ -12,7 +12,7 @@
        * -o - output_file
        * -r - number of reconnects
        * -p - password
-       *
+       * -h - help
    */
 
 int main(int argc, char** argv) {
@@ -21,14 +21,30 @@ int main(int argc, char** argv) {
     ntripConnectionConfig_t connectionConfig;
     ntripSocketSettings_t socketSettings {5, 5};
     std::string logFilepath;
-	
-    for(size_t i = 0; i < args.size(); ++i) {
+
+    if (args[0].find("-h") != std::string_view::npos) {
+        std::cout << "Options\n"
+            "-i <ip:port>\t\t= Caster ip and port\n"
+            "-mp <mountpoint>\t= Caster mountpoint\n"
+            "-o <filepath>\t\t= Path to log file\n"
+            "-r <number>\t\t= Number of reconnects. By default = 5\n"
+            "-p <password>\t\t= Password for authorized connection\n"
+            "-h\t\t\t= help\n";
+        return 0;
+    }
+
+    if(args.size() % 2) {
+        std::cerr << "Missed arguments in some options\n";
+        return -1;
+    }
+
+    for(size_t i = 0; i < args.size(); i += 2) {
         if (args[i].find("-i") != std::string_view::npos) {
             if (auto pos = args[i + 1].find(":"); pos != std::string_view::npos) {
                 connectionConfig.ip = args[i + 1].substr(0, pos);
                 std::from_chars(args[i + 1].data() + pos + 1, args[i + 1].data() + args[i + 1].length(), connectionConfig.port);
             } else {
-                std::cout << "Invalid ip format!\n";
+                std::cerr << "Invalid ip format!\n";
                 return -1;
             }
         } else if (args[i].find("-mp") != std::string_view::npos) {
