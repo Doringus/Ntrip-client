@@ -13,10 +13,7 @@ public:
 	~WinTcpSocket();
 
 	bool connect(const std::string& ip, unsigned short port, int timeoutSec) noexcept override;
-	bool send(const char* data, int length) const noexcept override;
-	void beginReceive() const noexcept override;
 
 private:
 	bool m_IsSocketCreated = false;
-	SOCKET m_Socket;
 };

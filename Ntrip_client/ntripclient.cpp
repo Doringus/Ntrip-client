@@ -1,10 +1,8 @@
 #include "ntripclient.h"
 
 #include <iostream>
-#include <ios>
 #include <bitset>
 
-#include "wintcpsocket.h"
 #include "logger.h"
 
 NtripClient::NtripClient(ntripConnectionConfig_t connectionConfig, ntripSocketSettings_t socketSettings, std::unique_ptr<Logger> logger)
@@ -26,8 +24,12 @@ NtripClient::NtripClient(ntripConnectionConfig_t connectionConfig, ntripSocketSe
 		std::cout << "[Info]: Reconnected to caster.Starting session...\n";
 		beginSession();
 	};
-
+#ifdef _WIN32
 	m_SocketImpl = std::make_unique<WinTcpSocket>(std::move(readCallback), std::move(connectionAbortedCallback));
+#else
+	m_SocketImpl = std::make_unique<UnixTcpSocket>(std::move(readCallback), std::move(connectionAbortedCallback));
+	std::cout << "In create " << &m_SocketImpl->m_Socket << "\n";
+#endif
 }
 
 void NtripClient::start() noexcept {
@@ -35,6 +37,7 @@ void NtripClient::start() noexcept {
 		std::cout << "[Error]: Cannot establish connection with caster\n";
 		return;
 	}
+	std::cout <<"After connection " << m_SocketImpl->m_Socket << "\n";
 	beginSession();
 }
 
@@ -45,10 +48,12 @@ bool NtripClient::connectToCaster() const noexcept {
 		if (!m_SocketImpl->connect(m_ConnectionConfig.ip, m_ConnectionConfig.port, m_SocketSettings.timeout)) {
 			std::cout << "[Warning]: Connection failed. Attempts left: " + std::to_string(m_SocketSettings.numberOfReconnects - i - 1) + "\n";
 		} else {
+			std::cout << "In connect " << m_SocketImpl->m_Socket << "\n";
 			connected = true;
 			break;
 		}
 	}
+	
 	return connected;
 }
 
@@ -57,6 +62,10 @@ void NtripClient::beginSession() const noexcept {
 		"GET /" + m_ConnectionConfig.mountPoint + " HTTP/1.0\r\n"
 		"User-Agent: NTRIP TestClient/0.1\r\n"
 		"Authorization: Basic " + m_ConnectionConfig.base64Password;
-	m_SocketImpl->send(connectionQuery.c_str(), connectionQuery.length());
+	if(!m_SocketImpl->send(connectionQuery.c_str(), connectionQuery.length() + 1)) {
+		std::cout << "[ERROR]: Cannot send data with socket \n";
+		return;
+	}
+	
 	m_SocketImpl->beginReceive();
 }

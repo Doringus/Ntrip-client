@@ -4,6 +4,12 @@
 #include <string>
 #include <fstream>
 
+#ifdef _WIN32
+#include "wintcpsocket.h"
+#else
+#include "unixtcpsocket.h"	
+#endif
+
 struct ntripConnectionConfig_t {
 	std::string ip;
 	std::string mountPoint;
@@ -16,7 +22,6 @@ struct ntripSocketSettings_t {
 	int timeout;
 };
 
-class TcpSocket;
 class Logger;
 
 class NtripClient {

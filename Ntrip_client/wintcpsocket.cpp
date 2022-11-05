@@ -1,7 +1,5 @@
 #include "wintcpsocket.h"
 
-#include <WS2tcpip.h>
-
 #include <stdexcept>
 #include <iostream>
 
@@ -55,43 +53,4 @@ bool WinTcpSocket::connect(const std::string& ip, unsigned short port, int timeo
 	}
 
 	return true;
-}
-
-bool WinTcpSocket::send(const char* data, int length) const noexcept {
-	int totalBytesSend = 0;
-	do {
-		if (int result = ::send(m_Socket, data, length, 0); result != SOCKET_ERROR) {
-			totalBytesSend += result;
-		} else {
-			return false;
-		}
-
-	} while (totalBytesSend < length);
-	return true;
-}
-
-void WinTcpSocket::beginReceive() const noexcept {
-	constexpr int bufSize = 2048;
-	char buf[bufSize] = {0};
-	int bytesReceived;
-	do
-	{
-		bytesReceived = recv(m_Socket, buf, bufSize, 0);
-		if (bytesReceived > 0) {
-			std::string_view data(buf, bytesReceived);
-			m_ReadCallback(data);
-			memset(buf, 0, bufSize);
-			//for (int i = 0; i < r; ++i) {
-			//	printf("%02X ", static_cast<uint8_t>(buf[i]));
-			//}
-			//printf("\n");
-		} else if(bytesReceived == 0) {
-			break;
-		} else {
-			m_ConnectionAbortedCallback();
-			break;
-		}
-			
-	} while (bytesReceived > 0);
-
 }

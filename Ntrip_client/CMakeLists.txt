@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(HEADERS "tcpsocket.h" "ntripclient.h" "logger.h")
-set(SOURCES "main.cpp" "ntripclient.cpp" "logger.cpp")
+set(SOURCES "main.cpp" "ntripclient.cpp" "logger.cpp" "tcpsocket.cpp")
 
 if(WIN32) 
 	set(HEADERS ${HEADERS} "wintcpsocket.h" "winsockinit.h")
@@ -15,7 +15,8 @@ if(WIN32)
 endif()
 
 if(UNIX)
-
+	set(HEADERS ${HEADERS} "unixtcpsocket.h")
+	set(SOURCES ${SOURCES} "unixtcpsocket.cpp")
 endif()
 
 add_executable (Ntrip_client ${SOURCES} ${HEADERS})

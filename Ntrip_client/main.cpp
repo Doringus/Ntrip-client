@@ -1,10 +1,14 @@
 #include <iostream>
 #include <charconv>
+#include <vector>
 
-#include "wintcpsocket.h"
 #include "ntripclient.h"
 #include "logger.h"
+
+#ifdef _WIN32
 #include "winsockinit.h"
+#endif
+
 
 /*
        * Args:
@@ -17,6 +21,11 @@
 */
 
 int main(int argc, char** argv) {
+
+    if(argc == 1) {
+        std::cerr << "Provide args. Type -h for help\n";
+        return -1;
+    }
 
 #ifdef _WIN32
     WinsockInit init; // init wsadata on windows
@@ -63,8 +72,6 @@ int main(int argc, char** argv) {
             connectionConfig.base64Password = args[i + 1];
         }
     }
-
-	
 
     std::unique_ptr<Logger> logger;
     if(logFilepath.empty()) {
