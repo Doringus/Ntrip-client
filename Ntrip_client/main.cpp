@@ -4,6 +4,7 @@
 #include "wintcpsocket.h"
 #include "ntripclient.h"
 #include "logger.h"
+#include "winsockinit.h"
 
 /*
        * Args:
@@ -13,9 +14,14 @@
        * -r - number of reconnects
        * -p - password
        * -h - help
-   */
+*/
 
 int main(int argc, char** argv) {
+
+#ifdef _WIN32
+    WinsockInit init; // init wsadata on windows
+#endif
+
     std::vector<std::string_view> args(argv + 1, argv + argc);
 
     ntripConnectionConfig_t connectionConfig;
@@ -57,12 +63,8 @@ int main(int argc, char** argv) {
             connectionConfig.base64Password = args[i + 1];
         }
     }
-    
 
-
-	WSADATA wsaData;
-    WSAStartup(MAKEWORD(2, 2), &wsaData);
-
+	
 
     std::unique_ptr<Logger> logger;
     if(logFilepath.empty()) {
@@ -73,10 +75,6 @@ int main(int argc, char** argv) {
 	NtripClient client(connectionConfig, socketSettings, std::move(logger));
 	client.start();
   //  NtripClient client({ "3.23.52.207" , "ACACU", "", 2101 }, {5, 15}, std::make_unique<FileLogger>("log.dat"));
-
-
-
-    WSACleanup();
 
 	return 0;
 }

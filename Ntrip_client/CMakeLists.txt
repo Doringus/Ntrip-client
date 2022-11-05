@@ -6,8 +6,17 @@ project ("Ntrip_client")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(HEADERS "wintcpsocket.h"  "tcpsocket.h" "ntripclient.h" "logger.h")
-set(SOURCES "main.cpp" "wintcpsocket.cpp" "ntripclient.cpp" "logger.cpp")
+set(HEADERS "tcpsocket.h" "ntripclient.h" "logger.h")
+set(SOURCES "main.cpp" "ntripclient.cpp" "logger.cpp")
+
+if(WIN32) 
+	set(HEADERS ${HEADERS} "wintcpsocket.h" "winsockinit.h")
+	set(SOURCES ${SOURCES} "wintcpsocket.cpp")
+endif()
+
+if(UNIX)
+
+endif()
 
 add_executable (Ntrip_client ${SOURCES} ${HEADERS})
 
