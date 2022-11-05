@@ -28,7 +28,6 @@ NtripClient::NtripClient(ntripConnectionConfig_t connectionConfig, ntripSocketSe
 	m_SocketImpl = std::make_unique<WinTcpSocket>(std::move(readCallback), std::move(connectionAbortedCallback));
 #else
 	m_SocketImpl = std::make_unique<UnixTcpSocket>(std::move(readCallback), std::move(connectionAbortedCallback));
-	std::cout << "In create " << &m_SocketImpl->m_Socket << "\n";
 #endif
 }
 
@@ -37,7 +36,7 @@ void NtripClient::start() noexcept {
 		std::cout << "[Error]: Cannot establish connection with caster\n";
 		return;
 	}
-	std::cout <<"After connection " << m_SocketImpl->m_Socket << "\n";
+	std::cout << "[Info]: Connection established\n";
 	beginSession();
 }
 
@@ -48,7 +47,6 @@ bool NtripClient::connectToCaster() const noexcept {
 		if (!m_SocketImpl->connect(m_ConnectionConfig.ip, m_ConnectionConfig.port, m_SocketSettings.timeout)) {
 			std::cout << "[Warning]: Connection failed. Attempts left: " + std::to_string(m_SocketSettings.numberOfReconnects - i - 1) + "\n";
 		} else {
-			std::cout << "In connect " << m_SocketImpl->m_Socket << "\n";
 			connected = true;
 			break;
 		}

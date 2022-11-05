@@ -11,5 +11,4 @@ public:
 
 private:
 	bool m_IsSocketCreated = false;
-	int m_Socket;
 };

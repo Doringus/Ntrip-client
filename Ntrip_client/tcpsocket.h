@@ -25,7 +25,7 @@ public:
 	virtual bool send(const char* data, int length) const noexcept;
 	virtual void beginReceive() const noexcept;
 
-public:
+protected:
 	std::function<void(std::string_view data)> m_ReadCallback;
 	std::function<void()> m_ConnectionAbortedCallback;
 #ifdef _WIN32

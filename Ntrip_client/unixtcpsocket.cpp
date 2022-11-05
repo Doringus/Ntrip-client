@@ -5,12 +5,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include <iostream>
-
-
 UnixTcpSocket::UnixTcpSocket(std::function<void(std::string_view data)> readCallback, std::function<void()> connectionAbortedCallback)
-	: TcpSocket(std::move(readCallback), std::move(connectionAbortedCallback))
-{ }
+	: TcpSocket(std::move(readCallback), std::move(connectionAbortedCallback)) { }
 
 UnixTcpSocket::~UnixTcpSocket() {
 	if (m_IsSocketCreated) {
@@ -36,7 +32,5 @@ bool UnixTcpSocket::connect(const std::string& ip, unsigned short port, int time
 		return false;
 	}
 	int res = ::connect(m_Socket, reinterpret_cast<sockaddr*>(&clientService), sizeof(clientService));
-	std::cout << "In socket class " << m_Socket << "\n";
-	std::cout <<  "in unix socket "<< &m_Socket << "\n";
 	return res == 0 ? true : false;
 }

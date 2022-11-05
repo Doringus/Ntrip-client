@@ -17,10 +17,9 @@ public:
 
 class FileLogger : public Logger {
 public:
-	FileLogger(std::string_view filepath);
-	~FileLogger();
+	FileLogger(std::string filepath);
 
 	void log(std::string_view data) override;
 private:
-	std::ofstream m_LogStream;
+	std::string m_Filepath;
 };

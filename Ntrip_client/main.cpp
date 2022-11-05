@@ -81,6 +81,7 @@ int main(int argc, char** argv) {
     }
 	NtripClient client(connectionConfig, socketSettings, std::move(logger));
 	client.start();
+
   //  NtripClient client({ "3.23.52.207" , "ACACU", "", 2101 }, {5, 15}, std::make_unique<FileLogger>("log.dat"));
 
 	return 0;

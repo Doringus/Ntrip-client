@@ -1,7 +1,6 @@
 #include "wintcpsocket.h"
 
 #include <stdexcept>
-#include <iostream>
 
 WinTcpSocket::WinTcpSocket(std::function<void(std::string_view data)> readCallback, std::function<void()> connectionAbortedCallback)
 	: TcpSocket(std::move(readCallback), std::move(connectionAbortedCallback))
@@ -51,6 +50,5 @@ bool WinTcpSocket::connect(const std::string& ip, unsigned short port, int timeo
 	if(!FD_ISSET(m_Socket, &write) || status == SOCKET_ERROR) {
 		return false;
 	}
-
 	return true;
 }

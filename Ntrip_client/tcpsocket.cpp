@@ -1,11 +1,8 @@
 #include "tcpsocket.h"
 
 #include <cstring>
-#include <iostream>
 
 bool TcpSocket::send(const char* data, int length) const noexcept {
-	std::cout << "IN TCP SOCKET" << &m_Socket << "\n";
-	//std::cout << m_Socket;
 	int totalBytesSend = 0;
 	do {
 		if (int result = ::send(m_Socket, data, length, 0); result != -1) {
